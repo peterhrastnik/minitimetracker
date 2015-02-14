@@ -35,7 +35,7 @@ public class TasksTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int col) {
-        System.out.println("HALLO !!!!");
+
         String val = "N/A";
         
         if (col == 0) {

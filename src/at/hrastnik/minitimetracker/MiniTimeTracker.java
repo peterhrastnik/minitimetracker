@@ -107,7 +107,13 @@ public class MiniTimeTracker extends JFrame {
                     System.out.println("HALLO" + e.getID());
                     TaskEntry task = new TaskEntry("taskId", null, new Date(), null);
                     MiniTimeTracker.this.getTasksTableModel().addRow(task);
-                    MiniTimeTracker.this.getDao().addRow(task);
+                    try {
+						MiniTimeTracker.this.getDao().addRow(task);
+						System.out.println("Added "+ task.getId());
+					} catch (Exception e1) {
+		
+						e1.printStackTrace();
+					}
                 }
                
             }
