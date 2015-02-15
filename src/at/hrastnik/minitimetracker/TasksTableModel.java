@@ -11,14 +11,26 @@ public class TasksTableModel extends AbstractTableModel {
 
     //private Object[][] data = { { "1", "a", "b", "c" }, { "2", "a", "b", "c" }, { "3", "a", "b", "c" }, { "4", "a", "b", "c" } };
 
-    
-    private List<TaskEntry> data = new ArrayList<TaskEntry>(); 
+ 
 
+
+    private TaskDAO dao = new TaskDAO();
     
-    
-    public void addRow(TaskEntry task) {
-        this.getData().add(task);
-        fireTableRowsInserted(1, 1);
+    public static int MAX_MODEL_SIZE = 5;
+
+
+	public void addRow(TaskEntry task) {
+   
+        
+        try {
+			this.getDao().addRow(task);
+			System.out.println("Added "+ task.getId());
+		} catch (Exception e1) {
+
+			e1.printStackTrace();
+		}       
+        
+        fireTableRowsInserted(0, 0);
     }
     
     
@@ -27,7 +39,14 @@ public class TasksTableModel extends AbstractTableModel {
     }
 
     public int getRowCount() {
-        return this.getData().size();
+    	try {
+			List<TaskEntry> taskEntries = this.getDao().getLatestTasks(MAX_MODEL_SIZE);
+			return taskEntries.size();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return 0;
+		}
     }
 
     public String getColumnName(int col) {
@@ -35,23 +54,44 @@ public class TasksTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int col) {
-
-        String val = "N/A";
-        
-        if (col == 0) {
-        	return Utils.nullSafeToString(this.getData().get(row).getTaskId());
-        } else if (col == 1) {
-        	return Utils.nullSafeToString(this.getData().get(row).getTaskDescription());
-        } else if (col == 2) {
-        	return Utils.nullSafeToString( this.getData().get(row).getStart());
-        } else if (col == 3) {        	
-        	return Utils.nullSafeToString(this.getData().get(row).getFinish());
-        }
+    	if (row >= MAX_MODEL_SIZE) {
+    		return null;
+    	}
+    	String val = "N/A";
+    	try {
+			List<TaskEntry> latestTasks = this.getDao().getLatestTasks(MAX_MODEL_SIZE);
+			
+			switch (col) {
+			case 0:
+				return Utils.nullSafeToString(latestTasks.get(row).getTaskId());
+			case 1:
+				return Utils.nullSafeToString(latestTasks.get(row).getTaskDescription());
+			case 2:
+				System.out.println(latestTasks.get(row).getStart());
+				return Utils.timestampToString(latestTasks.get(row).getStart());
+			case 3:
+				System.out.println(latestTasks.get(row).getFinish());
+				return Utils.timestampToString(latestTasks.get(row).getFinish());
+			default:
+				return val;
+			}
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
         return val;
  
     }
 
+    
+	public TaskEntry getEntryAtRow(int row) throws Exception{
+		return this.getDao().getLatestTasks(MAX_MODEL_SIZE).get(row);
+	
+	}
+    
+    
     public Class getColumnClass(int c) {
         return getValueAt(0, c).getClass();
     }
@@ -81,14 +121,17 @@ public class TasksTableModel extends AbstractTableModel {
 
 
     
-    public List<TaskEntry> getData() {
-        return data;
-    }
+
+    public TaskDAO getDao() {
+		return dao;
+	}
+
+
+	public void setDao(TaskDAO dao) {
+		this.dao = dao;
+	}
+
 
 
     
-    public void setData(List<TaskEntry> data) {
-        this.data = data;
-    }
-
 }

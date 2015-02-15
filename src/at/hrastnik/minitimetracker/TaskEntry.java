@@ -3,24 +3,9 @@ package at.hrastnik.minitimetracker;
 import java.util.Date;
 
 
-public class TaskEntry {
+public class TaskEntry implements Cloneable{
 
-	private int id;
-    public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getTaskDescription() {
-		return taskDescription;
-	}
-
-	public void setTaskDescription(String taskDescription) {
-		this.taskDescription = taskDescription;
-	}
+	private Integer id;
 
 	private String taskId;
     private String taskDescription;
@@ -36,7 +21,21 @@ public class TaskEntry {
         
     }
     
-    public String getTaskId() {
+    
+    @Override
+	protected TaskEntry clone() {
+		try {
+			return (TaskEntry)super.clone();
+		} catch (CloneNotSupportedException cnse) {
+			cnse.printStackTrace();
+			return null;
+		}
+		
+	}
+
+
+
+	public String getTaskId() {
         return taskId;
     }
     
@@ -60,7 +59,22 @@ public class TaskEntry {
 		this.finish = finish;
 	}
  
-  
+    public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getTaskDescription() {
+		return taskDescription;
+	}
+
+	public void setTaskDescription(String taskDescription) {
+		this.taskDescription = taskDescription;
+	}
+
    
     
 }
