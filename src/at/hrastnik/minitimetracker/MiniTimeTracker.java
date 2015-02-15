@@ -57,7 +57,7 @@ public class MiniTimeTracker extends JFrame {
         this.setTasksTableModel(new TasksTableModel());
         
         this.setTitle("Mini Time Tracker");
-        this.setSize(600, 500);
+        this.setSize(650, 200);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
      
@@ -94,6 +94,20 @@ public class MiniTimeTracker extends JFrame {
                
             }
         });
+        
+        stopButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+                if (e.getID() == ActionEvent.ACTION_PERFORMED) {
+                	
+                	stopCurrentTask();
+                	MiniTimeTracker.this.getTable().repaint();
+                }
+				
+			}
+		});
+        
         
         this.setTable(new JTable(this.getTasksTableModel()));
         this.getTable().setAutoscrolls(true);
@@ -154,6 +168,8 @@ public class MiniTimeTracker extends JFrame {
 				e1.printStackTrace();
 			}
 		}
+	
+		MiniTimeTracker.this.setCurrTask(null);
 	}
 
 

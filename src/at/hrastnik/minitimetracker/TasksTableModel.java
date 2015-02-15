@@ -16,7 +16,7 @@ public class TasksTableModel extends AbstractTableModel {
 
     private TaskDAO dao = new TaskDAO();
     
-    public static int MAX_MODEL_SIZE = 5;
+    public static int MAX_MODEL_SIZE = 10;
 
 
 	public void addRow(TaskEntry task) {
