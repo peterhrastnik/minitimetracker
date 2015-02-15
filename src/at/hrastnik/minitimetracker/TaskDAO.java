@@ -55,6 +55,42 @@ public class TaskDAO {
 		
 		return latestTasks;
 	};
+
+	
+	public String getLatestDescription(String taskId) throws Exception {
+		Connection conn = this.getConnection();
+		
+		PreparedStatement stmt = conn.prepareStatement("select TASK_DESCRIPTION from TASK where TASK_ID=? ORDER by start DESC FETCH FIRST 1 ROWS ONLY");
+	
+		stmt.setString(1, taskId);
+		
+		ResultSet rs = stmt.executeQuery();
+		
+		String description = null;
+		while(rs.next()) {
+			description = rs.getString(1);
+		}
+		return description;
+	}
+	
+	public List<String> getRelevantTaskIds(int maxDaysBack) throws Exception {
+		
+		Connection conn = this.getConnection();
+		
+		PreparedStatement stmt = conn.prepareStatement("select DISTINCT(TASK_ID) from TASK");
+		//stmt.setInt(1, count);
+		ResultSet rs = stmt.executeQuery();
+		;
+		List<String> relevantTasks = new ArrayList<String>();
+		
+		while (rs.next()) {
+			relevantTasks.add(rs.getString(1));
+			
+		}
+		
+		
+		return relevantTasks;
+	};	
 	
 	
 	public void addRow(TaskEntry taskEntry) throws Exception {
@@ -69,7 +105,6 @@ public class TaskDAO {
 			
 			stmt.setString(1, taskEntry.getTaskId());
 			stmt.setString(2, taskEntry.getTaskDescription());
-			System.out.println(taskEntry.getStart());
 			
 			stmt.setTimestamp(3, new Timestamp(taskEntry.getStart().getTime()));
 			stmt.setTimestamp(4, taskEntry.getFinish() == null ? null: new Timestamp(taskEntry.getFinish().getTime()));
@@ -77,9 +112,7 @@ public class TaskDAO {
 			
 			ResultSet rs = stmt.getGeneratedKeys();
 			rs.next();
-
 			int id = rs.getInt(1);
-			System.out.println(id);
 			taskEntry.setId(id);
 			rs.close();
 			stmt.close();

@@ -24,9 +24,7 @@ public class TasksTableModel extends AbstractTableModel {
         
         try {
 			this.getDao().addRow(task);
-			System.out.println("Added "+ task.getId());
 		} catch (Exception e1) {
-
 			e1.printStackTrace();
 		}       
         
@@ -67,10 +65,8 @@ public class TasksTableModel extends AbstractTableModel {
 			case 1:
 				return Utils.nullSafeToString(latestTasks.get(row).getTaskDescription());
 			case 2:
-				System.out.println(latestTasks.get(row).getStart());
 				return Utils.timestampToString(latestTasks.get(row).getStart());
 			case 3:
-				System.out.println(latestTasks.get(row).getFinish());
 				return Utils.timestampToString(latestTasks.get(row).getFinish());
 			default:
 				return val;

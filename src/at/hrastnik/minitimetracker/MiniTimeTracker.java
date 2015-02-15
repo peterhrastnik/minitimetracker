@@ -4,20 +4,23 @@ import java.awt.EventQueue;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerEvent;
-import java.awt.event.ContainerListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.util.Date;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+
+import org.apache.commons.lang3.StringUtils;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -26,7 +29,7 @@ public class MiniTimeTracker extends JFrame {
 
 
     private TasksTableModel tasksTableModel;
-    private JTable table;
+    private TasksTable table;
     private TaskDAO dao = new TaskDAO();
     
     private JTextField taskId; 
@@ -38,12 +41,7 @@ public class MiniTimeTracker extends JFrame {
 
 	public static void main(String[] args) throws Exception {
 
-        
-        
-        TaskDAO dao = new TaskDAO();
-        dao.testDerby();
-        
-        EventQueue.invokeLater(new Runnable() {
+         EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
                 MiniTimeTracker mtt = new MiniTimeTracker();
@@ -62,24 +60,23 @@ public class MiniTimeTracker extends JFrame {
         this.setTasksTableModel(new TasksTableModel());
         
         this.setTitle("Mini Time Tracker");
-        this.setSize(650, 200);
+        this.setSize(650, 250);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
      
         final JPanel mig = new JPanel(new MigLayout());
         
-        this.setTaskId(new JTextField("taskId", 8));
-        this.setTaskDesc(new JTextField("taskDef", 25));
-        JButton     startButton = new JButton("start");
-        JButton     stopButton = new JButton("stop");
+        this.setTaskId(new JTextField("PD-", 8));
+        this.setTaskDesc(new JTextField("", 25));
+        JButton startButton = new JButton("start");
+        JButton stopButton = new JButton("stop");
         
         
 
-        this.setTable(new JTable(this.getTasksTableModel()));
+        this.setTable(new TasksTable(this.getTasksTableModel(), this));
         this.getTable().setAutoscrolls(true);
         this.getTable().setSize(600, 300);
-        
-
+ 
         mig.add(this.getTaskId());
         mig.add(this.getTaskDesc());
         mig.add(startButton); 
@@ -89,38 +86,73 @@ public class MiniTimeTracker extends JFrame {
         
         this.addListeners(startButton, stopButton);
         
-        
         this.getContentPane().add(mig);
         
         setVisible(true);
          
     }
 
-
+	private void nextTask() {
+		stopCurrentTask();
+		
+		if (StringUtils.isEmpty(MiniTimeTracker.this.getTaskDesc().getText())) {
+			try {
+				MiniTimeTracker.this.getTaskDesc().setText(MiniTimeTracker.this.getDao().getLatestDescription(MiniTimeTracker.this.getTaskId().getText()));
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		TaskEntry task = new TaskEntry(
+				MiniTimeTracker.this.getTaskId().getText(), 
+				MiniTimeTracker.this.getTaskDesc().getText(), 
+				new Date(), 
+				null);
+		MiniTimeTracker.this.startNewTask(task);
+	}
 
 
 
 	private void addListeners(JButton startButton, JButton stopButton) {
+		
+		//New task return key strokes on text fields
+		AbstractAction nextTaskKeyAction = new AbstractAction() {
+			
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				MiniTimeTracker.this.nextTask();
+			}
+		};
+		
+		MiniTimeTracker.this.getTaskId().getInputMap(JComponent.WHEN_FOCUSED).put(
+				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "start");
+		MiniTimeTracker.this.getTaskId().getActionMap().put("start", nextTaskKeyAction);
+		
+		MiniTimeTracker.this.getTaskDesc().getInputMap(JComponent.WHEN_FOCUSED).put(
+				KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "start");
+		MiniTimeTracker.this.getTaskDesc().getActionMap().put("start", nextTaskKeyAction);
+		
+		
+		
+		
+		
+		//New task on click start
 		startButton.addActionListener(new ActionListener() {
             
             @Override
             public void actionPerformed(ActionEvent e) {
                 
-                if (e.getID() == ActionEvent.ACTION_PERFORMED) {
-                	
-                	stopCurrentTask();
-                	
-                    TaskEntry task = new TaskEntry(
-                    		MiniTimeTracker.this.getTaskId().getText(), 
-                    		MiniTimeTracker.this.getTaskDesc().getText(), 
-                    		new Date(), 
-                    		null);
-                    MiniTimeTracker.this.startNewTask(task);
+                if (e.getID() == ActionEvent.ACTION_PERFORMED) {	
+                	MiniTimeTracker.this.nextTask();
                 }
                
             }
+
+
         });
 		
+		//stop task on click stop
         stopButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -134,7 +166,7 @@ public class MiniTimeTracker extends JFrame {
 			}
 		});
 	
-        
+        //start task on mouse double click on table
 		this.getTable().addMouseListener(new MouseAdapter() {
 
 			public void mousePressed(MouseEvent me) {
@@ -162,7 +194,7 @@ public class MiniTimeTracker extends JFrame {
 			}
 		});
         
-        
+        //stop task on exit
         this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e)
@@ -185,7 +217,7 @@ public class MiniTimeTracker extends JFrame {
 				e1.printStackTrace();
 			}
 		}
-	
+		this.getTable().clearSelection();
 		MiniTimeTracker.this.setCurrTask(null);
 	}
 
@@ -193,7 +225,7 @@ public class MiniTimeTracker extends JFrame {
 	private void startNewTask(TaskEntry newTask) {
 		MiniTimeTracker.this.getTasksTableModel().addRow(newTask);
 		MiniTimeTracker.this.setCurrTask(newTask);
-		MiniTimeTracker.this.getTable().setRowSelectionInterval(0, 0);
+		
 		
 	}
     
@@ -213,14 +245,14 @@ public class MiniTimeTracker extends JFrame {
 
 
     
-    public JTable getTable() {
+    public TasksTable getTable() {
         return table;
     }
 
 
 
     
-    public void setTable(JTable table) {
+    public void setTable(TasksTable table) {
         this.table = table;
     }
     
