@@ -1,5 +1,6 @@
 package at.hrastnik.minitimetracker;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -21,5 +22,16 @@ public class Utils {
 		return sdf.format(date);
 	}
 	
+	
+	
+	   public static Date StringToTimestamp(String dateString) throws ParseException {
+	        if (dateString == null) {
+	            return null;
+	        }
+	        SimpleDateFormat parser=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	        
+	        return parser.parse(dateString);
+	    }
+	    
 	
 }

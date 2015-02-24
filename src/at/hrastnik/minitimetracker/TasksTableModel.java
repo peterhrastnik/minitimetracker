@@ -1,6 +1,6 @@
 package at.hrastnik.minitimetracker;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
@@ -8,11 +8,6 @@ import javax.swing.table.AbstractTableModel;
 public class TasksTableModel extends AbstractTableModel {
 
     private String[]   columnNames = new String[] { "Task", "Start", "End", "Duration" };
-
-    //private Object[][] data = { { "1", "a", "b", "c" }, { "2", "a", "b", "c" }, { "3", "a", "b", "c" }, { "4", "a", "b", "c" } };
-
- 
-
 
     private TaskDAO dao = new TaskDAO();
     
@@ -92,27 +87,37 @@ public class TasksTableModel extends AbstractTableModel {
         return getValueAt(0, c).getClass();
     }
 
-    /*
-     * Don't need to implement this method unless your table's
-     * editable.
-     */
     public boolean isCellEditable(int row, int col) {
-        //Note that the data/cell address is constant,
-        //no matter where the cell appears onscreen.
-        if (col < 2) {
-            return false;
-        } else {
             return true;
-        }
     }
 
-    /*
-     * Don't need to implement this method unless your table's
-     * data can change.
-     */
+
     public void setValueAt(Object value, int row, int col) {
-        //data[row][col] = value;
-        fireTableCellUpdated(row, col);
+        
+        try {
+            TaskEntry task = this.getDao().getLatestTasks(MAX_MODEL_SIZE).get(row);
+            
+            switch (col) {
+            case 0:
+                task.setTaskId(value.toString());
+                break;
+            case 1:
+                task.setTaskDescription(value.toString());
+                break;
+            case 2:
+                task.setStart(Utils.StringToTimestamp(value.toString()));
+                break;
+            case 3:
+                task.setFinish(Utils.StringToTimestamp(value.toString()));
+                break;
+            default:
+                break;
+            }
+            this.getDao().update(task);
+            fireTableCellUpdated(row, col);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
